@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Playground - Simple Games</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        :root {
+            --primary: #ff00ff;
+            --secondary: #00ffff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background: linear-gradient(135deg, #0a0a2e, #1a0033);
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        header {
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 4px solid var(--primary);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px var(--primary);
+            animation: glow 2s infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 10px var(--primary); }
+            to { text-shadow: 0 0 20px var(--primary), 0 0 30px #00ffff; }
+        }
+        
+        nav {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 20px;
+            background: rgba(0,0,0,0.6);
+        }
+        
+        .game-btn {
+            background: #1a0033;
+            color: white;
+            border: 3px solid var(--secondary);
+            padding: 12px 20px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .game-btn:hover {
+            background: var(--primary);
+            transform: scale(1.1);
+            box-shadow: 0 0 15px var(--primary);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .game-section {
+            display: none;
+            background: rgba(255,255,255,0.05);
+            border: 4px solid var(--secondary);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .game-section.active {
+            display: block;
+        }
+        
+        .game-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        /* Maze Game */
+        #maze-game {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .maze {
+            display: grid;
+            grid-template-columns: repeat(10, 30px);
+            grid-template-rows: repeat(10, 30px);
+            gap: 2px;
+            background: #000;
+            padding: 10px;
+            border: 6px solid #ff00ff;
+        }
+        
+        .cell {
+            width: 30px;
+            height: 30px;
+            background: #222;
+        }
+        
+        .wall {
+            background: #555 !important;
+        }
+        
+        .player {
+            background: #00ff00 !important;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .goal {
+            background: #ffff00 !important;
+        }
+        
+        /* Memory Game */
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 80px);
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .card {
+            width: 80px;
+            height: 80px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border: 3px solid #fff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        
+        .card-front {
+            background: #1a0033;
+        }
+        
+        .card-back {
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            transform: rotateY(180deg);
+        }
+        
+        /* Balloon Pop */
+        .balloons {
+            position: relative;
+            height: 400px;
+            border: 4px dashed #fff;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #0a0a2e, #1a1a5e);
+        }
+        
+        .balloon {
+            position: absolute;
+            width: 60px;
+            height: 70px;
+            background: radial-gradient(circle at 40% 30%, #fff, transparent);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            cursor: pointer;
+            animation: float 4s infinite ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-30px); }
+            100% { transform: translateY(0); }
+        }
+        
+        /* CYOA */
+        .story-text {
+            background: #000;
+            padding: 20px;
+            border: 3px solid #00ffff;
+            min-height: 200px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .choice-btn {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 15px;
+            background: #330033;
+            border: 3px solid var(--primary);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-size: 0.8rem;
+        }
+        
+        .win-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,255,0,0.9);
+            color: #000;
+            padding: 30px;
+            font-size: 1.5rem;
+            border: 6px solid #ffff00;
+            display: none;
+            z-index: 1000;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PIXEL PLAYGROUND</h1>
+        <p>Simple HTML + CSS + JS Games</p>
+    </header>
+    
+    <nav>
+        <button class="game-btn" onclick="showGame('maze')">🎯 Mouse Maze</button>
+        <button class="game-btn" onclick="showGame('memory')">🎨 Memory Match</button>
+        <button class="game-btn" onclick="showGame('balloon')">🎈 Balloon Pop</button>
+        <button class="game-btn" onclick="showGame('cyoa')">🎲 Adventure</button>
+        <button class="game-btn" onclick="showGame('treasure')">🏴 Treasure Hunt</button>
+    </nav>
+    
+    <div class="container">
+        
+        <!-- MOUSE MAZE -->
+        <div id="maze" class="game-section active">
+            <h2 class="game-title">🎯 MOUSE MAZE CHALLENGE</h2>
+            <p>Use arrow keys to move the green player to the yellow goal!</p>
+            <div id="maze-game">
+                <div id="maze-grid" class="maze"></div>
+                <div style="margin-top: 15px;">
+                    <button onclick="resetMaze()" style="padding:10px 20px;">Reset Maze</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- MEMORY GAME -->
+        <div id="memory" class="game-section">
+            <h2 class="game-title">🎨 ANIMATED MEMORY GAME</h2>
+            <p>Match the emojis! Click cards to flip.</p>
+            <div style="text-align:center;">
+                <div id="memory-grid" class="memory-grid"></div>
+                <p id="memory-score" style="margin-top:15px;">Matches: <span id="matches">0</span>/8</p>
+                <button onclick="resetMemory()" style="margin-top:15px;padding:10px 20px;">New Game</button>
+            </div>
+        </div>
+        
+        <!-- BALLOON POP -->
+        <div id="balloon" class="game-section">
+            <h2 class="game-title">🎈 BALLOON POP CHALLENGE</h2>
+            <p>Pop as many balloons as you can before they float away!</p>
+            <div class="balloons" id="balloon-container"></div>
+            <div style="text-align:center; margin-top:15px;">
+                <p>Score: <span id="balloon-score">0</span></p>
+                <button onclick="startBalloonGame()" style="padding:10px 20px;">Start Popping!</button>
+            </div>
+        </div>
+        
+        <!-- CHOOSE YOUR OWN ADVENTURE -->
+        <div id="cyoa" class="game-section">
+            <h2 class="game-title">🎲 CHOOSE YOUR OWN ADVENTURE</h2>
+            <div id="story-text" class="story-text"></div>
+            <div id="choices"></div>
+            <button onclick="restartAdventure()" style="margin-top:15px;padding:10px 20px;">Restart Story</button>
+        </div>
+        
+        <!-- TREASURE HUNT -->
+        <div id="treasure" class="game-section">
+            <h2 class="game-title">🏴 TREASURE HUNT</h2>
+            <p>Click on the sand to find the buried treasure!</p>
+            <div style="text-align:center;">
+                <div id="treasure-map" style="position:relative; width:400px; height:400px; margin:20px auto; background: #d4a017; border:8px solid #8B4513; overflow:hidden; cursor:crosshair;">
+                </div>
+                <p id="treasure-status">Find the treasure! 5 attempts left.</p>
+                <button onclick="resetTreasure()" style="padding:10px 20px;">New Map</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="win-screen" class="win-message">
+        <div>🎉 YOU WIN! 🎉</div>
+        <button onclick="hideWin()" style="margin-top:20px; padding:12px 30px; font-size:1rem;">Play Again</button>
+    </div>
+    
+    <footer>
+        Made with ❤️ using HTML + CSS + a bit of JS | Refresh page to reset everything
+    </footer>
+
+    <script>
+        // Utility
+        function showGame(gameId) {
+            document.querySelectorAll('.game-section').forEach(sec => {
+                sec.classList.remove('active');
+            });
+            document.getElementById(gameId).classList.add('active');
+        }
+        
+        function showWin() {
+            document.getElementById('win-screen').style.display = 'block';
+        }
+        
+        function hideWin() {
+            document.getElementById('win-screen').style.display = 'none';
+        }
+        
+        // ==================== MAZE GAME ====================
+        let playerPos = {x: 1, y: 1};
+        let mazeData = [];
+        
+        const mazeLayout = [
+            [1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,1,0,0,0,0,1],
+            [1,0,1,0,1,0,1,1,0,1],
+            [1,0,1,0,0,0,1,0,0,1],
+            [1,0,1,1,1,0,1,0,1,1],
+            [1,0,0,0,1,0,0,0,1,1],
+            [1,1,1,0,1,1,1,0,1,1],
+            [1,0,0,0,0,0,1,0,0,1],
+            [1,0,1,1,1,0,1,1,0,1],
+            [1,1,1,1,1,2,1,1,1,1]
+        ];
+        
+        function createMaze() {
+            const grid = document.getElementById('maze-grid');
+            grid.innerHTML = '';
+            mazeData = [];
+            
+            for (let y = 0; y < 10; y++) {
+                mazeData[y] = [];
+                for (let x = 0; x < 10; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    if (mazeLayout[y][x] === 1) cell.classList.add('wall');
+                    if (mazeLayout[y][x] === 2) cell.classList.add('goal');
+                    grid.appendChild(cell);
+                    mazeData[y][x] = mazeLayout[y][x];
+                }
+            }
+            
+            // Place player
+            updatePlayerPosition();
+        }
+        
+        function updatePlayerPosition() {
+            const cells = document.querySelectorAll('#maze-grid .cell');
+            cells.forEach(cell => cell.classList.remove('player'));
+            
+            const index = playerPos.y * 10 + playerPos.x;
+            if (cells[index]) {
+                cells[index].classList.add('player');
+                cells[index].innerHTML = '🐭';
+            }
+        }
+        
+        function movePlayer(dx, dy) {
+            const newX = playerPos.x + dx;
+            const newY = playerPos.y + dy;
+            
+            if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10) return;
+            if (mazeLayout[newY][newX] === 1) return; // wall
+            
+            playerPos.x = newX;
+            playerPos.y = newY;
+            updatePlayerPosition();
+            
+            // Check win
+            if (mazeLayout[newY][newX] === 2) {
+                setTimeout(() => {
+                    alert("🎉 You escaped the maze! Amazing!");
+                    showWin();
+                }, 100);
+            }
+        }
+        
+        function resetMaze() {
+            playerPos = {x: 1, y: 1};
+            createMaze();
+        }
+        
+        // ==================== MEMORY GAME ====================
+        let memoryCards = [];
+        let flippedCards = [];
+        let matches = 0;
+        
+        const emojis = ['🍄','🍄','🌵','🌵','🍒','🍒','🍓','🍓','🍋','🍋','🍉','🍉','🍇','🍇','🥑','🥑'];
+        
+        function shuffle(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+        
+        function createMemoryGame() {
+            const grid = document.getElementById('memory-grid');
+            grid.innerHTML = '';
+            memoryCards = shuffle([...emojis]);
+            flippedCards = [];
+            matches = 0;
+            document.getElementById('matches').textContent = '0';
+            
+            memoryCards.forEach((emoji, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.index = index;
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front">❓</div>
+                        <div class="card-back">${emoji}</div>
+                    </div>
+                `;
+                card.addEventListener('click', () => flipCard(card));
+                grid.appendChild(card);
+            });
+        }
+        
+        function flipCard(card) {
+            if (flippedCards.length === 2 || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+            
+            card.classList.add('flipped');
+            flippedCards.push(card);
+            
+            if (flippedCards.length === 2) {
+                const [card1, card2] = flippedCards;
+                const idx1 = parseInt(card1.dataset.index);
+                const idx2 = parseInt(card2.dataset.index);
+                
+                if (memoryCards[idx1] === memoryCards[idx2]) {
+                    card1.classList.add('matched');
+                    card2.classList.add('matched');
+                    matches++;
+                    document.getElementById('matches').textContent = matches;
+                    flippedCards = [];
+                    
+                    if (matches === 8) {
+                        setTimeout(() => {
+                            alert("🎉 Perfect memory! You matched all pairs!");
+                            showWin();
+                        }, 400);
+                    }
+                } else {
+                    setTimeout(() => {
+                        card1.classList.remove('flipped');
+                        card2.classList.remove('flipped');
+                        flippedCards = [];
+                    }, 800);
+                }
+            }
+        }
+        
+        function resetMemory() {
+            createMemoryGame();
+        }
+        
+        // ==================== BALLOON POP ====================
+        let balloonScore = 0;
+        let balloonInterval;
+        
+        function createBalloon() {
+            const container = document.getElementById('balloon-container');
+            const balloon = document.createElement('div');
+            balloon.className = 'balloon';
+            
+            const colors = ['#ff0066', '#00ffcc', '#ffcc00', '#cc00ff'];
+            balloon.style.background = colors[Math.floor(Math.random()*colors.length)];
+            balloon.style.left = Math.random() * 85 + '%';
+            balloon.style.animationDuration = (Math.random() * 3 + 3) + 's';
+            balloon.textContent = '🎈';
+            
+            balloon.addEventListener('click', (e) => {
+                e.stopImmediatePropagation();
+                balloon.style.transition = 'transform 0.3s';
+                balloon.style.transform = 'scale(0.1)';
+                balloonScore += 10;
+                document.getElementById('balloon-score').textContent = balloonScore;
+                setTimeout(() => balloon.remove(), 300);
+            });
+            
+            container.appendChild(balloon);
+            
+            // Remove after animation
+            setTimeout(() => {
+                if (balloon.parentNode) balloon.remove();
+            }, 8000);
+        }
+        
+        function startBalloonGame() {
+            balloonScore = 0;
+            document.getElementById('balloon-score').textContent = '0';
+            const container = document.getElementById('balloon-container');
+            container.innerHTML = '';
+            
+            if (balloonInterval) clearInterval(balloonInterval);
+            
+            balloonInterval = setInterval(() => {
+                if (document.querySelectorAll('.balloon').length < 8) {
+                    createBalloon();
+                }
+            }, 600);
+            
+            // Auto end after 30 seconds
+            setTimeout(() => {
+                clearInterval(balloonInterval);
+                if (balloonScore >= 150) {
+                    showWin();
+                }
+            }, 30000);
+        }
+        
+        // ==================== CHOOSE YOUR OWN ADVENTURE ====================
+        let currentScene = 0;
+        
+        const story = [
+            {
+                text: "You wake up on a mysterious island. You see a dark cave and a tall mountain.",
+                choices: [
+                    { text: "Enter the cave", next: 1 },
+                    { text: "Climb the mountain", next: 2 }
+                ]
+            },
+            {
+                text: "Inside the cave you find an old treasure chest guarded by glowing eyes...",
+                choices: [
+                    { text: "Open the chest", next: 3 },
+                    { text: "Run away", next: 4 }
+                ]
+            },
+            {
+                text: "You reach the mountain top. A magical flying ship is waiting!",
+                choices: [
+                    { text: "Board the ship", next: 5 },
+                    { text: "Look for more treasure", next: 6 }
+                ]
+            },
+            {
+                text: "The chest was filled with gold! You are rich! 🏆",
+                choices: [{ text: "Play again", next: 0 }]
+            },
+            {
+                text: "You escaped safely but missed the treasure... Better luck next time.",
+                choices: [{ text: "Try again", next: 0 }]
+            },
+            {
+                text: "The ship takes you home safely with new friends! The End. 🌟",
+                choices: [{ text: "Restart", next: 0 }]
+            },
+            {
+                text: "You find a hidden temple full of ancient artifacts! Incredible discovery!",
+                choices: [{ text: "Restart", next: 0 }]
+            }
+        ];
+        
+        function showScene(sceneIndex) {
+            currentScene = sceneIndex;
+            const scene = story[sceneIndex];
+            document.getElementById('story-text').innerHTML = `<p>${scene.text}</p>`;
+            
+            const choicesDiv = document.getElementById('choices');
+            choicesDiv.innerHTML = '';
+            
+            scene.choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.textContent = choice.text;
+                btn.onclick = () => showScene(choice.next);
+                choicesDiv.appendChild(btn);
+            });
+        }
+        
+        function restartAdventure() {
+            showScene(0);
+        }
+        
+        // ==================== TREASURE HUNT ====================
+        let attempts = 5;
+        let treasureX, treasureY;
+        
+        function createTreasureMap() {
+            const map = document.getElementById('treasure-map');
+            map.innerHTML = '';
+            attempts = 5;
+            updateTreasureStatus();
+            
+            treasureX = Math.random() * 380 + 10;
+            treasureY = Math.random() * 380 + 10;
+            
+            // Add some fake items
+            for (let i = 0; i < 12; i++) {
+                const fake = document.createElement('div');
+                fake.style.position = 'absolute';
+                fake.style.width = '20px';
+                fake.style.height = '20px';
+                fake.style.left = Math.random() * 380 + 'px';
+                fake.style.top = Math.random() * 380 + 'px';
+                fake.style.fontSize = '18px';
+                fake.textContent = ['🦀','🐚','🌴','🪨'][Math.floor(Math.random()*4)];
+                map.appendChild(fake);
+            }
+            
+            map.onclick = function(e) {
+                if (attempts <= 0) return;
+                
+                const rect = map.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+                
+                const distance = Math.sqrt(Math.pow(clickX - treasureX, 2) + Math.pow(clickY - treasureY, 2));
+                
+                attempts--;
+                updateTreasureStatus();
+                
+                if (distance < 35) {
+                    const winDiv = document.createElement('div');
+                    winDiv.style.position = 'absolute';
+                    winDiv.style.left = treasureX + 'px';
+                    winDiv.style.top = treasureY + 'px';
+                    winDiv.style.fontSize = '60px';
+                    winDiv.textContent = '💎';
+                    map.appendChild(winDiv);
+                    setTimeout(() => showWin(), 300);
+                } else if (distance < 80) {
+                    alert("🔥 Very close!");
+                } else if (distance < 150) {
+                    alert("🌡️ Warm...");
+                } else {
+                    alert("❄️ Cold...");
+                }
+                
+                if (attempts === 0 && distance >= 35) {
+                    alert("Game Over! The treasure was at (" + Math.round(treasureX) + ", " + Math.round(treasureY) + ")");
+                }
+            };
+        }
+        
+        function updateTreasureStatus() {
+            document.getElementById('treasure-status').textContent = `Find the treasure! ${attempts} attempts left.`;
+        }
+        
+        function resetTreasure() {
+            createTreasureMap();
+        }
+        
+        // Keyboard for maze
+        document.addEventListener('keydown', function(e) {
+            if (!document.getElementById('maze').classList.contains('active')) return;
+            
+            switch(e.key) {
+                case 'ArrowUp': movePlayer(0, -1); break;
+                case 'ArrowDown': movePlayer(0, 1); break;
+                case 'ArrowLeft': movePlayer(-1, 0); break;
+                case 'ArrowRight': movePlayer(1, 0); break;
+            }
+        });
+        
+        // Initialize all games
+        window.onload = function() {
+            createMaze();
+            createMemoryGame();
+            // Balloons start on button press
+            restartAdventure();
+            createTreasureMap();
+            
+            // Show first game
+            showGame('maze');
+        };
+    </script>
+</body>
+</html>
